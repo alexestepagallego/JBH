@@ -257,28 +257,72 @@
         </form>
     </div>
 
-    <script>
-    const timeSlots = document.querySelectorAll('.time-slot:not(.disabled)');
+<script>
+    // Seleccionamos TODAS las horas (ocupadas o no)
+    const timeSlots = document.querySelectorAll('.time-slot');
     const horaInput = document.getElementById('horaSeleccionada');
     const btnSubmit = document.querySelector('.btn-submit');
+    const fechaInput = document.getElementById('fecha');
 
-    // Lógica para seleccionar la hora
+    // PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT
+    const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbzX22USLMrrhdeebFg7IqArFZgxajRY1k3KjIwhYnEfF82tBnBoTlFfqXN2xkVzU1lq/exec";
+
+    // 1. Configurar la fecha mínima al día de hoy
+    const hoy = new Date().toISOString().split('T')[0];
+    fechaInput.setAttribute('min', hoy);
+
+    // 2. Lógica para seleccionar una hora (solo si no está tachada)
     timeSlots.forEach(slot => {
         slot.addEventListener('click', function() {
+            // Si tiene la clase disabled, ignorar el click
+            if(this.classList.contains('disabled')) return; 
+
             timeSlots.forEach(s => s.classList.remove('selected'));
             this.classList.add('selected');
             horaInput.value = this.getAttribute('data-time');
         });
     });
 
-    // Configurar la fecha mínima al día de hoy
-    const hoy = new Date().toISOString().split('T')[0];
-    document.getElementById('fecha').setAttribute('min', hoy);
+    // 3. NUEVO: Consultar horas disponibles cuando cambian de día
+    fechaInput.addEventListener('change', function() {
+        const fechaElegida = this.value;
+        if(!fechaElegida) return;
 
-    // PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT
-    const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbzg7AA2CaaevChgj4LrRqhpWhqpyCQwqz3rs9cIwA3pKYztBLJjIPsOGMXE1YA2Sg0c/exec";
+        // Borrar selección anterior y poner todo en estado "Cargando..."
+        horaInput.value = "";
+        timeSlots.forEach(s => {
+            s.classList.remove('selected');
+            s.classList.add('disabled'); // Deshabilita todas temporalmente
+            s.style.opacity = "0.5";
+        });
 
-    // Enviar el formulario
+        // Llamar a Google para preguntar qué horas están ocupadas
+        fetch(URL_GOOGLE_SCRIPT + "?fecha=" + fechaElegida)
+        .then(response => response.json())
+        .then(data => {
+            const horasOcupadas = data.ocupadas || []; // Ej: ["10:00", "16:45"]
+            
+            timeSlots.forEach(s => {
+                s.style.opacity = "1"; // Quitar efecto cargando
+                const horaDeEsteBoton = s.getAttribute('data-time');
+                
+                // Si la hora de este botón está en la lista de ocupadas, lo tachamos
+                if(horasOcupadas.includes(horaDeEsteBoton)) {
+                    s.classList.add('disabled');
+                } else {
+                    // Si está libre, lo habilitamos
+                    s.classList.remove('disabled');
+                }
+            });
+        })
+        .catch(error => {
+            console.error("Error cargando disponibilidad", error);
+            // Si hay error, por precaución, reactivamos todas para no bloquear la app
+            timeSlots.forEach(s => s.classList.remove('disabled')); 
+        });
+    });
+
+    // 4. Enviar el formulario (Guardar la reserva)
     document.getElementById('bookingForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -287,44 +331,37 @@
             return;
         }
 
-        // Cambiar el botón a estado de carga
         const textoOriginal = btnSubmit.innerText;
         btnSubmit.innerText = "Reservando...";
         btnSubmit.style.opacity = "0.5";
         btnSubmit.disabled = true;
 
-        // Recopilar datos
         const datosReserva = {
             servicio: document.getElementById('servicio').value,
-            fecha: document.getElementById('fecha').value,
+            fecha: fechaInput.value,
             hora: horaInput.value,
             nombre: document.getElementById('nombre').value,
             telefono: document.getElementById('telefono').value
         };
 
-        // Enviar a Google Calendar
         fetch(URL_GOOGLE_SCRIPT, {
             method: 'POST',
             body: JSON.stringify(datosReserva),
-            // plain/text evita problemas de bloqueo de seguridad (CORS) en el navegador
             headers: { 'Content-Type': 'text/plain;charset=utf-8' } 
         })
         .then(response => response.json())
         .then(data => {
             if(data.status === "exito") {
                 alert("¡Cita reservada con éxito! Te esperamos.");
-                document.getElementById('bookingForm').reset(); // Limpiar formulario
-                timeSlots.forEach(s => s.classList.remove('selected'));
+                document.getElementById('bookingForm').reset();
+                timeSlots.forEach(s => s.classList.remove('selected', 'disabled'));
                 horaInput.value = "";
             } else {
                 alert("Hubo un problema al reservar. Inténtalo de nuevo.");
             }
         })
-        .catch(error => {
-            alert("Error de conexión.");
-        })
+        .catch(error => alert("Error de conexión."))
         .finally(() => {
-            // Restaurar el botón
             btnSubmit.innerText = textoOriginal;
             btnSubmit.style.opacity = "1";
             btnSubmit.disabled = false;
