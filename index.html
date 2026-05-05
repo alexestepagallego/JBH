@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Reservas - JBH Barber</title>
+    <title>JBH Barber</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     
     <style>
@@ -17,7 +17,6 @@
             --hover-bg: #222222;
             --selected-bg: #ffffff;
             --selected-text: #000000;
-            --error-color: #ff4444;
         }
 
         body {
@@ -25,15 +24,89 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            /* Quitamos el flex del body para manejar las pantallas por separado */
+        }
+
+        /* --- PANTALLA DE INICIO (LANDING PAGE) --- */
+        #landing-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            /* Filtro oscuro + Imagen de fondo */
+            background: linear-gradient(rgba(5, 5, 5, 0.85), rgba(5, 5, 5, 0.85)), url('image_f277bc.jpg');
+            background-size: cover;
+            background-position: center;
             display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 100;
+            transition: opacity 0.5s ease;
+        }
+
+        .landing-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 4.5rem;
+            letter-spacing: 8px;
+            margin: 0;
+            font-weight: 400;
+            text-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .landing-subtitle {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-top: 5px;
+            margin-bottom: 50px;
+        }
+
+        .btn-entrar {
+            padding: 18px 50px;
+            background-color: transparent;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            border-radius: 4px;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .btn-entrar:hover, .btn-entrar:active {
+            background-color: var(--accent);
+            color: #000;
+            transform: scale(0.98);
+        }
+
+        /* --- SECCIÓN DE RESERVAS (Oculta al inicio) --- */
+        #booking-section {
+            display: none; /* Se activa con JavaScript */
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            /* Soporte para altura dinámica en navegadores móviles modernos */
-            min-height: 100dvh; 
+            min-height: 100dvh;
+            padding: 20px;
+            box-sizing: border-box;
+            animation: fadeIn 0.8s forwards;
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- ESTILOS DEL FORMULARIO (Igual que antes) --- */
         .booking-container {
             background-color: var(--container-bg);
             width: 100%;
@@ -50,26 +123,15 @@
             margin-bottom: 35px;
         }
 
-        .header h1 {
+        .header h2 {
             font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            letter-spacing: 4px;
+            font-size: 2rem;
+            letter-spacing: 3px;
             margin: 0;
             font-weight: 400;
         }
 
-        .header p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-top: 5px;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
+        .form-group { margin-bottom: 25px; }
         .form-group label {
             display: block;
             margin-bottom: 12px;
@@ -79,295 +141,231 @@
             color: #eeeeee;
         }
 
-        /* Ajustes específicos para evitar el zoom en iOS y mejorar el tacto */
-        input[type="text"],
-        input[type="tel"],
-        input[type="date"],
-        select {
-            width: 100%;
-            padding: 15px;
-            background-color: #1a1a1a;
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 16px; /* Evita auto-zoom en iPhone */
-            transition: border-color 0.3s ease;
-            appearance: none; /* Elimina estilos por defecto del sistema */
-            -webkit-appearance: none;
+        input[type="text"], input[type="tel"], input[type="date"], select {
+            width: 100%; padding: 15px; background-color: #1a1a1a;
+            border: 1px solid var(--border-color); color: var(--text-main);
+            border-radius: 8px; box-sizing: border-box; font-size: 16px;
+            transition: border-color 0.3s ease; appearance: none; -webkit-appearance: none;
         }
 
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--accent);
-            background-color: #222;
-        }
-
-        ::-webkit-calendar-picker-indicator {
-            filter: invert(1);
-            cursor: pointer;
-            padding: 5px;
-        }
+        input:focus, select:focus { outline: none; border-color: var(--accent); background-color: #222; }
+        ::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; padding: 5px; }
 
         .time-slots {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
-            gap: 12px;
-            margin-top: 10px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+            gap: 12px; margin-top: 10px;
         }
 
         .time-slot {
-            padding: 14px 5px;
-            text-align: center;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-weight: 500;
-            font-size: 15px;
-            user-select: none; /* Evita que el texto se seleccione al hacer toques rápidos */
-            -webkit-tap-highlight-color: transparent; /* Quita el destello azul en Android */
+            padding: 14px 5px; text-align: center; border: 1px solid var(--border-color);
+            border-radius: 8px; cursor: pointer; transition: all 0.2s ease;
+            font-weight: 500; font-size: 15px; user-select: none; -webkit-tap-highlight-color: transparent;
         }
 
-        .time-slot:hover {
-            background-color: var(--hover-bg);
-        }
-
-        .time-slot.selected {
-            background-color: var(--selected-bg);
-            color: var(--selected-text);
-            border-color: var(--selected-bg);
-            font-weight: bold;
-        }
-
-        .time-slot.disabled {
-            opacity: 0.25;
-            cursor: not-allowed;
-            text-decoration: line-through;
-            pointer-events: none;
-            background-color: transparent;
-        }
+        .time-slot:hover { background-color: var(--hover-bg); }
+        .time-slot.selected { background-color: var(--selected-bg); color: var(--selected-text); border-color: var(--selected-bg); font-weight: bold; }
+        .time-slot.disabled { opacity: 0.25; cursor: not-allowed; text-decoration: line-through; pointer-events: none; background-color: transparent; }
 
         .btn-submit {
-            width: 100%;
-            padding: 18px;
-            margin-top: 10px;
-            background-color: var(--accent);
-            color: #000;
-            border: none;
-            border-radius: 8px;
-            font-family: 'Playfair Display', serif;
-            font-size: 1.2rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            cursor: pointer;
-            transition: opacity 0.2s ease, transform 0.1s ease;
-            -webkit-tap-highlight-color: transparent;
+            width: 100%; padding: 18px; margin-top: 10px; background-color: var(--accent);
+            color: #000; border: none; border-radius: 8px; font-family: 'Playfair Display', serif;
+            font-size: 1.2rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1.5px;
+            cursor: pointer; transition: opacity 0.2s ease, transform 0.1s ease; -webkit-tap-highlight-color: transparent;
         }
 
-        .btn-submit:active {
-            transform: scale(0.97);
-            opacity: 0.8;
-        }
+        .btn-submit:active { transform: scale(0.97); opacity: 0.8; }
 
-        /* --- ADAPTACIÓN ESTRICTA PARA MÓVILES --- */
         @media (max-width: 600px) {
-            body {
-                padding: 0;
-                align-items: flex-start;
-                background-color: var(--container-bg);
-            }
-            .booking-container {
-                border: none;
-                box-shadow: none;
-                border-radius: 0;
-                padding: 30px 20px 40px 20px;
-                min-height: 100dvh;
-                display: flex;
-                flex-direction: column;
-            }
-            form {
-                display: flex;
-                flex-direction: column;
-                flex-grow: 1;
-            }
-            .btn-submit {
-                margin-top: auto; /* Empuja el botón hacia la parte inferior de la pantalla */
-                box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
-            }
-            .header h1 {
-                font-size: 2.2rem;
-            }
+            #booking-section { padding: 0; align-items: flex-start; background-color: var(--container-bg); }
+            .booking-container { border: none; box-shadow: none; border-radius: 0; padding: 30px 20px 40px 20px; display: flex; flex-direction: column; }
+            form { display: flex; flex-direction: column; flex-grow: 1; }
+            .btn-submit { margin-top: auto; box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1); }
         }
     </style>
 </head>
 <body>
 
-    <div class="booking-container">
-        <div class="header">
-            <h1>J B H</h1>
-            <p>Barber</p>
-        </div>
-
-        <form id="bookingForm">
-            <div class="form-group">
-                <label for="servicio">Servicio</label>
-                <!-- Se añade un flecha visual simple para el select usando código hex -->
-                <div style="position: relative;">
-                    <select id="servicio" required>
-                        <option value="" disabled selected>Selecciona un servicio...</option>
-                        <option value="corte">Corte de Pelo Clásico</option>
-                        <option value="corte_barba">Corte y Arreglo de Barba</option>
-                        <option value="perfilado">Perfilado de Barba</option>
-                        <option value="tinte">Tinte / Mechas</option>
-                    </select>
-                    <span style="position: absolute; right: 15px; top: 16px; pointer-events: none; font-size: 12px;">▼</span>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="fecha">Día de la cita</label>
-                <input type="date" id="fecha" required>
-            </div>
-
-            <div class="form-group">
-                <label>Hora disponible</label>
-                <div class="time-slots" id="timeSlots">
-                    <div class="time-slot" data-time="09:00">09:00</div>
-                    <div class="time-slot" data-time="09:45">09:45</div>
-                    <div class="time-slot" data-time="10:30">10:30</div>
-                    <div class="time-slot disabled" data-time="11:15">11:15</div>
-                    <div class="time-slot" data-time="12:00">12:00</div>
-                    <div class="time-slot disabled" data-time="16:00">16:00</div>
-                    <div class="time-slot" data-time="16:45">16:45</div>
-                    <div class="time-slot disabled" data-time="17:30">17:30</div>
-                    <div class="time-slot" data-time="18:15">18:15</div>
-                </div>
-                <input type="hidden" id="horaSeleccionada" required>
-            </div>
-
-            <div class="form-group">
-                <label for="nombre">Tus Datos</label>
-                <input type="text" id="nombre" placeholder="Nombre completo" style="margin-bottom: 12px;" required>
-                <input type="tel" id="telefono" placeholder="Teléfono de contacto" required>
-            </div>
-
-            <button type="submit" class="btn-submit">Reservar Cita</button>
-        </form>
+    <!-- PANTALLA DE INICIO (LANDING PAGE) -->
+    <div id="landing-page">
+        <h1 class="landing-title">J B H</h1>
+        <p class="landing-subtitle">Barber</p>
+        <button id="btn-entrar" class="btn-entrar">Reservar Cita</button>
     </div>
 
-<script>
-    // Seleccionamos TODAS las horas (ocupadas o no)
-    const timeSlots = document.querySelectorAll('.time-slot');
-    const horaInput = document.getElementById('horaSeleccionada');
-    const btnSubmit = document.querySelector('.btn-submit');
-    const fechaInput = document.getElementById('fecha');
+    <!-- SECCIÓN DE RESERVAS -->
+    <div id="booking-section">
+        <div class="booking-container">
+            <div class="header">
+                <h2>Elige tu momento</h2>
+            </div>
 
-    // PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT
-    const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbzX22USLMrrhdeebFg7IqArFZgxajRY1k3KjIwhYnEfF82tBnBoTlFfqXN2xkVzU1lq/exec";
+            <form id="bookingForm">
+                <div class="form-group">
+                    <label for="servicio">Servicio</label>
+                    <div style="position: relative;">
+                        <select id="servicio" required>
+                            <option value="" disabled selected>Selecciona un servicio...</option>
+                            <option value="corte">Corte de Pelo Clásico</option>
+                            <option value="corte_barba">Corte y Arreglo de Barba</option>
+                            <option value="perfilado">Perfilado de Barba</option>
+                            <option value="tinte">Tinte / Mechas</option>
+                        </select>
+                        <span style="position: absolute; right: 15px; top: 16px; pointer-events: none; font-size: 12px;">▼</span>
+                    </div>
+                </div>
 
-    // 1. Configurar la fecha mínima al día de hoy
-    const hoy = new Date().toISOString().split('T')[0];
-    fechaInput.setAttribute('min', hoy);
+                <div class="form-group">
+                    <label for="fecha">Día de la cita</label>
+                    <input type="date" id="fecha" required>
+                </div>
 
-    // 2. Lógica para seleccionar una hora (solo si no está tachada)
-    timeSlots.forEach(slot => {
-        slot.addEventListener('click', function() {
-            // Si tiene la clase disabled, ignorar el click
-            if(this.classList.contains('disabled')) return; 
+                <div class="form-group">
+                    <label>Hora disponible</label>
+                    <div class="time-slots" id="timeSlots">
+                        <div class="time-slot" data-time="09:00">09:00</div>
+                        <div class="time-slot" data-time="09:45">09:45</div>
+                        <div class="time-slot" data-time="10:30">10:30</div>
+                        <div class="time-slot" data-time="11:15">11:15</div>
+                        <div class="time-slot" data-time="12:00">12:00</div>
+                        <div class="time-slot" data-time="16:00">16:00</div>
+                        <div class="time-slot" data-time="16:45">16:45</div>
+                        <div class="time-slot" data-time="17:30">17:30</div>
+                        <div class="time-slot" data-time="18:15">18:15</div>
+                    </div>
+                    <input type="hidden" id="horaSeleccionada" required>
+                </div>
 
-            timeSlots.forEach(s => s.classList.remove('selected'));
-            this.classList.add('selected');
-            horaInput.value = this.getAttribute('data-time');
-        });
-    });
+                <div class="form-group">
+                    <label for="nombre">Tus Datos</label>
+                    <input type="text" id="nombre" placeholder="Nombre completo" style="margin-bottom: 12px;" required>
+                    <input type="tel" id="telefono" placeholder="Teléfono de contacto" required>
+                </div>
 
-    // 3. NUEVO: Consultar horas disponibles cuando cambian de día
-    fechaInput.addEventListener('change', function() {
-        const fechaElegida = this.value;
-        if(!fechaElegida) return;
+                <button type="submit" class="btn-submit">Confirmar Reserva</button>
+            </form>
+        </div>
+    </div>
 
-        // Borrar selección anterior y poner todo en estado "Cargando..."
-        horaInput.value = "";
-        timeSlots.forEach(s => {
-            s.classList.remove('selected');
-            s.classList.add('disabled'); // Deshabilita todas temporalmente
-            s.style.opacity = "0.5";
-        });
+    <script>
+        // --- LÓGICA DE TRANSICIÓN DE PANTALLAS ---
+        const btnEntrar = document.getElementById('btn-entrar');
+        const landingPage = document.getElementById('landing-page');
+        const bookingSection = document.getElementById('booking-section');
 
-        // Llamar a Google para preguntar qué horas están ocupadas
-        fetch(URL_GOOGLE_SCRIPT + "?fecha=" + fechaElegida)
-        .then(response => response.json())
-        .then(data => {
-            const horasOcupadas = data.ocupadas || []; // Ej: ["10:00", "16:45"]
+        btnEntrar.addEventListener('click', function() {
+            // Efecto de desvanecimiento
+            landingPage.style.opacity = '0';
             
-            timeSlots.forEach(s => {
-                s.style.opacity = "1"; // Quitar efecto cargando
-                const horaDeEsteBoton = s.getAttribute('data-time');
-                
-                // Si la hora de este botón está en la lista de ocupadas, lo tachamos
-                if(horasOcupadas.includes(horaDeEsteBoton)) {
-                    s.classList.add('disabled');
-                } else {
-                    // Si está libre, lo habilitamos
-                    s.classList.remove('disabled');
-                }
+            // Esperar medio segundo a que termine la animación para ocultarlo y mostrar el formulario
+            setTimeout(() => {
+                landingPage.style.display = 'none';
+                bookingSection.style.display = 'flex'; // Usamos flex para que se centre correctamente
+            }, 500);
+        });
+
+        // --- LÓGICA DE RESERVAS Y CONEXIÓN CON GOOGLE ---
+        const timeSlots = document.querySelectorAll('.time-slot');
+        const horaInput = document.getElementById('horaSeleccionada');
+        const btnSubmit = document.querySelector('.btn-submit');
+        const fechaInput = document.getElementById('fecha');
+
+        // PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbzX22USLMrrhdeebFg7IqArFZgxajRY1k3KjIwhYnEfF82tBnBoTlFfqXN2xkVzU1lq/exec";
+
+        const hoy = new Date().toISOString().split('T')[0];
+        fechaInput.setAttribute('min', hoy);
+
+        timeSlots.forEach(slot => {
+            slot.addEventListener('click', function() {
+                if(this.classList.contains('disabled')) return; 
+                timeSlots.forEach(s => s.classList.remove('selected'));
+                this.classList.add('selected');
+                horaInput.value = this.getAttribute('data-time');
             });
-        })
-        .catch(error => {
-            console.error("Error cargando disponibilidad", error);
-            // Si hay error, por precaución, reactivamos todas para no bloquear la app
-            timeSlots.forEach(s => s.classList.remove('disabled')); 
         });
-    });
 
-    // 4. Enviar el formulario (Guardar la reserva)
-    document.getElementById('bookingForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        if(!horaInput.value) {
-            alert("Por favor, selecciona una hora para tu cita.");
-            return;
-        }
+        fechaInput.addEventListener('change', function() {
+            const fechaElegida = this.value;
+            if(!fechaElegida) return;
 
-        const textoOriginal = btnSubmit.innerText;
-        btnSubmit.innerText = "Reservando...";
-        btnSubmit.style.opacity = "0.5";
-        btnSubmit.disabled = true;
+            horaInput.value = "";
+            timeSlots.forEach(s => {
+                s.classList.remove('selected');
+                s.classList.add('disabled');
+                s.style.opacity = "0.5";
+            });
 
-        const datosReserva = {
-            servicio: document.getElementById('servicio').value,
-            fecha: fechaInput.value,
-            hora: horaInput.value,
-            nombre: document.getElementById('nombre').value,
-            telefono: document.getElementById('telefono').value
-        };
+            fetch(URL_GOOGLE_SCRIPT + "?fecha=" + fechaElegida)
+            .then(response => response.json())
+            .then(data => {
+                const horasOcupadas = data.ocupadas || []; 
+                timeSlots.forEach(s => {
+                    s.style.opacity = "1"; 
+                    const horaDeEsteBoton = s.getAttribute('data-time');
+                    if(horasOcupadas.includes(horaDeEsteBoton)) {
+                        s.classList.add('disabled');
+                    } else {
+                        s.classList.remove('disabled');
+                    }
+                });
+            })
+            .catch(error => {
+                console.error("Error cargando disponibilidad", error);
+                timeSlots.forEach(s => s.classList.remove('disabled')); 
+            });
+        });
 
-        fetch(URL_GOOGLE_SCRIPT, {
-            method: 'POST',
-            body: JSON.stringify(datosReserva),
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' } 
-        })
-        .then(response => response.json())
-        .then(data => {
-            if(data.status === "exito") {
-                alert("¡Cita reservada con éxito! Te esperamos.");
-                document.getElementById('bookingForm').reset();
-                timeSlots.forEach(s => s.classList.remove('selected', 'disabled'));
-                horaInput.value = "";
-            } else {
-                alert("Hubo un problema al reservar. Inténtalo de nuevo.");
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if(!horaInput.value) {
+                alert("Por favor, selecciona una hora para tu cita.");
+                return;
             }
-        })
-        .catch(error => alert("Error de conexión."))
-        .finally(() => {
-            btnSubmit.innerText = textoOriginal;
-            btnSubmit.style.opacity = "1";
-            btnSubmit.disabled = false;
+
+            const textoOriginal = btnSubmit.innerText;
+            btnSubmit.innerText = "Reservando...";
+            btnSubmit.style.opacity = "0.5";
+            btnSubmit.disabled = true;
+
+            const datosReserva = {
+                servicio: document.getElementById('servicio').value,
+                fecha: fechaInput.value,
+                hora: horaInput.value,
+                nombre: document.getElementById('nombre').value,
+                telefono: document.getElementById('telefono').value
+            };
+
+            fetch(URL_GOOGLE_SCRIPT, {
+                method: 'POST',
+                body: JSON.stringify(datosReserva),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' } 
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === "exito") {
+                    alert("¡Cita reservada con éxito! Te esperamos.");
+                    document.getElementById('bookingForm').reset();
+                    timeSlots.forEach(s => s.classList.remove('selected', 'disabled'));
+                    horaInput.value = "";
+                    
+                    // Opcional: Volver a la pantalla de inicio tras reservar
+                    bookingSection.style.display = 'none';
+                    landingPage.style.display = 'flex';
+                    landingPage.style.opacity = '1';
+
+                } else {
+                    alert("Hubo un problema al reservar. Inténtalo de nuevo.");
+                }
+            })
+            .catch(error => alert("Error de conexión."))
+            .finally(() => {
+                btnSubmit.innerText = textoOriginal;
+                btnSubmit.style.opacity = "1";
+                btnSubmit.disabled = false;
+            });
         });
-    });
-</script>
+    </script>
 
 </body>
 </html>
