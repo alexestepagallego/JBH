@@ -249,126 +249,150 @@
     </div>
 
     <script>
-        // --- LÓGICA DE TRANSICIÓN DE PANTALLAS ---
-        const btnEntrar = document.getElementById('btn-entrar');
-        const landingPage = document.getElementById('landing-page');
-        const bookingSection = document.getElementById('booking-section');
+    // --- LÓGICA DE TRANSICIÓN DE PANTALLAS ---
+    const btnEntrar = document.getElementById('btn-entrar');
+    const landingPage = document.getElementById('landing-page');
+    const bookingSection = document.getElementById('booking-section');
 
-        btnEntrar.addEventListener('click', function() {
-            // Efecto de desvanecimiento
-            landingPage.style.opacity = '0';
+    btnEntrar.addEventListener('click', function() {
+        landingPage.style.opacity = '0';
+        setTimeout(() => {
+            landingPage.style.display = 'none';
+            bookingSection.style.display = 'flex';
+        }, 500);
+    });
+
+    // --- LÓGICA DE RESERVAS Y CONEXIÓN CON GOOGLE ---
+    const timeSlots = document.querySelectorAll('.time-slot');
+    const horaInput = document.getElementById('horaSeleccionada');
+    const btnSubmit = document.querySelector('.btn-submit');
+    const fechaInput = document.getElementById('fecha');
+
+    // PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT
+    const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/TU_URL_AQUI/exec";
+
+    // 1. Obtener la fecha local real de hoy para bloquear días anteriores
+    const ahoraInit = new Date();
+    const añoInit = ahoraInit.getFullYear();
+    const mesInit = String(ahoraInit.getMonth() + 1).padStart(2, '0');
+    const diaInit = String(ahoraInit.getDate()).padStart(2, '0');
+    const hoyLocal = `${añoInit}-${mesInit}-${diaInit}`;
+    
+    fechaInput.setAttribute('min', hoyLocal);
+
+    // 2. Selección visual de horas
+    timeSlots.forEach(slot => {
+        slot.addEventListener('click', function() {
+            if(this.classList.contains('disabled')) return; 
+            timeSlots.forEach(s => s.classList.remove('selected'));
+            this.classList.add('selected');
+            horaInput.value = this.getAttribute('data-time');
+        });
+    });
+
+    // 3. Comprobación de disponibilidad (Google + Hora Actual)
+    fechaInput.addEventListener('change', function() {
+        const fechaElegida = this.value;
+        if(!fechaElegida) return;
+
+        horaInput.value = "";
+        timeSlots.forEach(s => {
+            s.classList.remove('selected');
+            s.classList.add('disabled');
+            s.style.opacity = "0.5";
+        });
+
+        fetch(URL_GOOGLE_SCRIPT + "?fecha=" + fechaElegida)
+        .then(response => response.json())
+        .then(data => {
+            const horasOcupadas = data.ocupadas || []; 
             
-            // Esperar medio segundo a que termine la animación para ocultarlo y mostrar el formulario
-            setTimeout(() => {
-                landingPage.style.display = 'none';
-                bookingSection.style.display = 'flex'; // Usamos flex para que se centre correctamente
-            }, 500);
-        });
+            // --- NUEVO: OBTENER HORA ACTUAL PARA BLOQUEAR EL PASADO ---
+            const momentoActual = new Date();
+            // Calculamos minutos totales para hacer fácil la comparación matemática (ej: 13:00 = 780 minutos)
+            const minutosActuales = momentoActual.getHours() * 60 + momentoActual.getMinutes();
 
-        // --- LÓGICA DE RESERVAS Y CONEXIÓN CON GOOGLE ---
-        const timeSlots = document.querySelectorAll('.time-slot');
-        const horaInput = document.getElementById('horaSeleccionada');
-        const btnSubmit = document.querySelector('.btn-submit');
-        const fechaInput = document.getElementById('fecha');
-
-        // PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwaGr_V_-qyDKzzs022b9BssYRAX9jgwAeMPYs8Tt7BU68qVpAJ1QK90MqBkUReSCE/exec";
-
-        const hoy = new Date().toISOString().split('T')[0];
-        fechaInput.setAttribute('min', hoy);
-
-        timeSlots.forEach(slot => {
-            slot.addEventListener('click', function() {
-                if(this.classList.contains('disabled')) return; 
-                timeSlots.forEach(s => s.classList.remove('selected'));
-                this.classList.add('selected');
-                horaInput.value = this.getAttribute('data-time');
-            });
-        });
-
-        fechaInput.addEventListener('change', function() {
-            const fechaElegida = this.value;
-            if(!fechaElegida) return;
-
-            horaInput.value = "";
             timeSlots.forEach(s => {
-                s.classList.remove('selected');
-                s.classList.add('disabled');
-                s.style.opacity = "0.5";
-            });
+                s.style.opacity = "1"; 
+                const horaDeEsteBoton = s.getAttribute('data-time');
+                
+                // Extraemos las horas y minutos del botón y lo pasamos a minutos totales
+                const [horasBoton, minBoton] = horaDeEsteBoton.split(':').map(Number);
+                const minutosBoton = horasBoton * 60 + minBoton;
 
-            fetch(URL_GOOGLE_SCRIPT + "?fecha=" + fechaElegida)
-            .then(response => response.json())
-            .then(data => {
-                const horasOcupadas = data.ocupadas || []; 
-                timeSlots.forEach(s => {
-                    s.style.opacity = "1"; 
-                    const horaDeEsteBoton = s.getAttribute('data-time');
-                    if(horasOcupadas.includes(horaDeEsteBoton)) {
-                        s.classList.add('disabled');
-                    } else {
-                        s.classList.remove('disabled');
-                    }
-                });
-            })
-            .catch(error => {
-                console.error("Error cargando disponibilidad", error);
-                timeSlots.forEach(s => s.classList.remove('disabled')); 
-            });
-        });
+                // CONDICIÓN 1: Google nos dice que hay un evento
+                const ocupadoPorGoogle = horasOcupadas.includes(horaDeEsteBoton);
+                
+                // CONDICIÓN 2: El cliente eligió la fecha de hoy, y la hora del botón es anterior o igual a la actual
+                const ocupadoPorPasado = (fechaElegida === hoyLocal) && (minutosBoton <= minutosActuales);
 
-        document.getElementById('bookingForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            if(!horaInput.value) {
-                alert("Por favor, selecciona una hora para tu cita.");
-                return;
-            }
-
-            const textoOriginal = btnSubmit.innerText;
-            btnSubmit.innerText = "Reservando...";
-            btnSubmit.style.opacity = "0.5";
-            btnSubmit.disabled = true;
-
-           const datosReserva = {
-    servicio: document.getElementById('servicio').value,
-    fecha: fechaInput.value,
-    hora: horaInput.value,
-    nombre: document.getElementById('nombre').value,
-    email: document.getElementById('email').value, // <-- ESTA LÍNEA ES LA CLAVE
-    telefono: document.getElementById('telefono').value
-};
-
-            fetch(URL_GOOGLE_SCRIPT, {
-                method: 'POST',
-                body: JSON.stringify(datosReserva),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' } 
-            })
-            .then(response => response.json())
-            .then(data => {
-                if(data.status === "exito") {
-                    alert("¡Cita reservada con éxito! Te esperamos.");
-                    document.getElementById('bookingForm').reset();
-                    timeSlots.forEach(s => s.classList.remove('selected', 'disabled'));
-                    horaInput.value = "";
-                    
-                    // Opcional: Volver a la pantalla de inicio tras reservar
-                    bookingSection.style.display = 'none';
-                    landingPage.style.display = 'flex';
-                    landingPage.style.opacity = '1';
-
+                // Si se cumple CUALQUIERA de las dos cosas, tachamos la hora
+                if(ocupadoPorGoogle || ocupadoPorPasado) {
+                    s.classList.add('disabled');
                 } else {
-                    alert("Hubo un problema al reservar. Inténtalo de nuevo.");
+                    s.classList.remove('disabled');
                 }
-            })
-            .catch(error => alert("Error de conexión."))
-            .finally(() => {
-                btnSubmit.innerText = textoOriginal;
-                btnSubmit.style.opacity = "1";
-                btnSubmit.disabled = false;
             });
+        })
+        .catch(error => {
+            console.error("Error cargando disponibilidad", error);
+            timeSlots.forEach(s => s.classList.remove('disabled')); 
         });
-    </script>
+    });
+
+    // 4. Enviar formulario al backend
+    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if(!horaInput.value) {
+            alert("Por favor, selecciona una hora para tu cita.");
+            return;
+        }
+
+        const textoOriginal = btnSubmit.innerText;
+        btnSubmit.innerText = "Reservando...";
+        btnSubmit.style.opacity = "0.5";
+        btnSubmit.disabled = true;
+
+        const datosReserva = {
+            servicio: document.getElementById('servicio').value,
+            fecha: fechaInput.value,
+            hora: horaInput.value,
+            nombre: document.getElementById('nombre').value,
+            email: document.getElementById('email').value,
+            telefono: document.getElementById('telefono').value
+        };
+
+        fetch(URL_GOOGLE_SCRIPT, {
+            method: 'POST',
+            body: JSON.stringify(datosReserva),
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' } 
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === "exito") {
+                alert("¡Cita reservada con éxito! Te esperamos.");
+                document.getElementById('bookingForm').reset();
+                timeSlots.forEach(s => s.classList.remove('selected', 'disabled'));
+                horaInput.value = "";
+                
+                // Volver a la pantalla de inicio tras reservar
+                bookingSection.style.display = 'none';
+                landingPage.style.display = 'flex';
+                landingPage.style.opacity = '1';
+
+            } else {
+                alert("Hubo un problema al reservar. Inténtalo de nuevo.");
+            }
+        })
+        .catch(error => alert("Error de conexión."))
+        .finally(() => {
+            btnSubmit.innerText = textoOriginal;
+            btnSubmit.style.opacity = "1";
+            btnSubmit.disabled = false;
+        });
+    });
+</script>
 
 </body>
 </html>
