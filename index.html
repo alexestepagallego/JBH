@@ -141,7 +141,7 @@
             color: #eeeeee;
         }
 
-        input[type="text"], input[type="tel"], input[type="date"], select {
+        input[type="text"], input[type="tel"], input[type="email"], input[type="date"], select {
             width: 100%; padding: 15px; background-color: #1a1a1a;
             border: 1px solid var(--border-color); color: var(--text-main);
             border-radius: 8px; box-sizing: border-box; font-size: 16px;
@@ -238,6 +238,8 @@
                 <div class="form-group">
                     <label for="nombre">Tus Datos</label>
                     <input type="text" id="nombre" placeholder="Nombre completo" style="margin-bottom: 12px;" required>
+                    <!-- AÑADIMOS EL CORREO AQUÍ -->
+                    <input type="email" id="email" placeholder="Tu correo electrónico" style="margin-bottom: 12px;" required>
                     <input type="tel" id="telefono" placeholder="Teléfono de contacto" required>
                 </div>
 
@@ -333,6 +335,7 @@
                 fecha: fechaInput.value,
                 hora: horaInput.value,
                 nombre: document.getElementById('nombre').value,
+                email: document.getElementById('email').value,
                 telefono: document.getElementById('telefono').value
             };
 
