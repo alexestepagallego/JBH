@@ -272,7 +272,7 @@
         const fechaInput = document.getElementById('fecha');
 
         // PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbxVocrKanjbCY5cGvU9xPJn8jyUmEtADRhD7z6zMlPjlNXh8piKW0NhO7_BQlqTwXsP/exec";
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbx8Moa5LuqkUDoQsus7eHjZcLam1d_iZRCDvJ2jC1WSiDmH2gphM7WB3oTVYadpTrXJ/exec";
 
         const hoy = new Date().toISOString().split('T')[0];
         fechaInput.setAttribute('min', hoy);
@@ -330,14 +330,14 @@
             btnSubmit.style.opacity = "0.5";
             btnSubmit.disabled = true;
 
-            const datosReserva = {
-                servicio: document.getElementById('servicio').value,
-                fecha: fechaInput.value,
-                hora: horaInput.value,
-                nombre: document.getElementById('nombre').value,
-                email: document.getElementById('email').value,
-                telefono: document.getElementById('telefono').value
-            };
+           const datosReserva = {
+    servicio: document.getElementById('servicio').value,
+    fecha: fechaInput.value,
+    hora: horaInput.value,
+    nombre: document.getElementById('nombre').value,
+    email: document.getElementById('email').value, // <-- ESTA LÍNEA ES LA CLAVE
+    telefono: document.getElementById('telefono').value
+};
 
             fetch(URL_GOOGLE_SCRIPT, {
                 method: 'POST',
