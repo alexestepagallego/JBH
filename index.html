@@ -237,10 +237,10 @@
 
                 <div class="form-group">
                     <label for="nombre">Tus Datos</label>
-                    <input type="text" id="nombre" placeholder="Nombre completo" style="margin-bottom: 12px;" required>
+                    <input type="text" id="nombre" placeholder="Nombre completo" style="margin-bottom: 12px;" required minlength="3" title="Por favor, introduce tu nombre (mínimo 3 caracteres)">
                     <!-- AÑADIMOS EL CORREO AQUÍ -->
-                    <input type="email" id="email" placeholder="Tu correo electrónico" style="margin-bottom: 12px;" required>
-                    <input type="tel" id="telefono" placeholder="Teléfono de contacto" required>
+                    <input type="email" id="email" placeholder="Tu correo electrónico" style="margin-bottom: 12px;" required pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" title="Por favor, introduce un correo electrónico válido (ejemplo@correo.com)">
+                    <input type="tel" id="telefono" placeholder="Teléfono de contacto" required pattern="\+?[0-9]{9,15}" title="Por favor, introduce un número de teléfono válido (mínimo 9 dígitos)">
                 </div>
 
                 <button type="submit" class="btn-submit">Confirmar Reserva</button>
